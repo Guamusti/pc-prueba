@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PuraCrema — MVP Offline (Pedido • FIX)</title>
+  <meta name="theme-color" content="#0d0d0f" />
+  <style>
+    :root{
+      --bg:#0b0b0d; --card:#141418; --text:#f2f2f2; --muted:#cfcfd4;
+      --accent:#f4c38f; --accent-2:#ffd9a8; --ok:#9ef0a0; --warn:#ffd166; --danger:#ff6b6b;
+      --shadow: 0 10px 30px rgba(0,0,0,.35); --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif}
+    .wrap{min-height:100dvh;display:flex;flex-direction:column}
+    header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg, rgba(11,11,13,.95), rgba(11,11,13,.65));backdrop-filter: blur(6px);border-bottom:1px solid rgba(255,255,255,.06)}
+    .bar{max-width:980px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:12px}
+    .logo{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#3a2a1f,#6b4b35,#a37854);display:grid;place-items:center;box-shadow:var(--shadow)}
+    h1{font-size:18px;margin:0}
+    .powered{margin-left:auto;font-size:12px;color:var(--muted)}
+    .hero{position:relative;overflow:hidden;background:linear-gradient(180deg,#0b0b0d 0%,#101014 55%,#0b0b0d 100%)}
+    .hero-inner{max-width:980px;margin:0 auto;padding:32px 16px 10px}
+    .title{font-size:28px;font-weight:800;letter-spacing:.2px;margin:6px 0 8px}
+    .subtitle{color:var(--muted);margin:0 0 14px}
+    .waves{position:absolute;inset:auto 0 0 0;pointer-events:none;opacity:.9}
+    main{max-width:980px;margin:0 auto;padding:16px;display:grid;gap:16px}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.07);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+    .grid{display:grid;gap:12px}
+    @media(min-width:820px){.grid{grid-template-columns:1fr 1fr}}
+    label{font-size:14px;color:var(--muted);display:block;margin:4px 0 6px}
+    select,button{width:100%;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:#0f0f12;color:var(--text);outline:none}
+    select:focus,button:focus{border-color:var(--accent)}
+    button{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#2c1e12;font-weight:800;border:none;cursor:pointer}
+    button:active{transform:translateY(1px)}
+    .result{display:grid;gap:16px}
+    .choice{display:grid;gap:12px}
+    .main-card{display:grid;gap:12px;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:12px;background:#101015}
+    .row{display:flex;gap:12px;align-items:center}
+    .main-card img{width:100%;max-width:360px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:#0e0f12}
+    .alts{display:grid;gap:10px}
+    .alt{display:flex;align-items:center;gap:12px;padding:10px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:#0f0f12}
+    .alt img{width:64px;height:64px;border-radius:10px;border:1px solid rgba(255,255,255,.08);object-fit:cover}
+    .muted{color:var(--muted)}
+    .pill{font-size:12px;color:#1a2718;background:var(--ok);padding:4px 8px;border-radius:999px;display:inline-block;font-weight:700}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    footer{padding:24px 16px;color:var(--muted);font-size:12px;text-align:center}
+    .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#101014;border:1px solid rgba(255,255,255,.1);padding:10px 14px;border-radius:999px;box-shadow:var(--shadow);display:none}
+    .err{color:var(--danger);font-size:13px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="bar">
+      <div class="logo"><span>🍦</span></div>
+      <h1>PuraCrema</h1>
+      <div class="powered">powered by <strong>AIdeal</strong></div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="title">La IA te ayuda a elegir tu helado favorito de hoy</div>
+      <p class="subtitle">MVP <strong>offline</strong> (fix compatibilidad). Recomendaciones finales + imágenes + “Pedirlo”.</p>
+    </div>
+    <svg class="waves" width="100%" height="140" viewBox="0 0 1440 140" preserveAspectRatio="none">
+      <path d="M0,64 C240,120 480,0 720,40 C960,80 1200,120 1440,72 L1440,140 L0,140 Z" fill="#f3e6d3" opacity="0.35"></path>
+      <path d="M0,84 C240,140 480,20 720,60 C960,100 1200,140 1440,92 L1440,140 L0,140 Z" fill="#ead8c0" opacity="0.35"></path>
+      <path d="M0,104 C240,160 480,40 720,80 C960,120 1200,160 1440,112 L1440,140 L0,140 Z" fill="#e4d0b6" opacity="0.45"></path>
+    </svg>
+  </section>
+
+  <main>
+    <div class="card">
+      <form id="formulario" class="grid" autocomplete="off">
+        <div>
+          <label>¿Tienes alguna restricción de <strong>alérgenos</strong>?</label>
+          <select name="alergenos" required>
+            <option value="ninguna">Ninguna</option>
+            <option value="sin_gluten">Sin gluten</option>
+            <option value="sin_lactosa">Sin lactosa</option>
+            <option value="vegano">Vegano</option>
+            <option value="frutos_secos">Evitar frutos secos</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Tipo de sabor #1</label>
+          <select name="sabor1" required>
+            <option value="dulce">Dulce</option>
+            <option value="acido">Ácido</option>
+            <option value="amargo">Amargo</option>
+            <option value="salado">Salado</option>
+            <option value="umami">Umami</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Tipo de sabor #2 (sensación)</label>
+          <select name="sabor2" required>
+            <option value="cremoso">Cremoso</option>
+            <option value="refrescante">Refrescante</option>
+            <option value="intenso">Intenso</option>
+            <option value="frutal">Frutal</option>
+            <option value="chocolateado">Chocolateado</option>
+          </select>
+        </div>
+
+        <div>
+          <label>¿Cómo te sientes hoy?</label>
+          <select name="estado" required>
+            <option value="feliz">Feliz</option>
+            <option value="tranquilo">Tranquilo/a</option>
+            <option value="cansado">Cansado/a</option>
+            <option value="con_prisa">Con prisa</option>
+          </select>
+        </div>
+
+        <div style="grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap">
+          <button type="submit">Ver recomendaciones</button>
+          <button type="button" id="otra">Otra sugerencia</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card result" id="resultado">
+      <div class="muted">Aquí verás la recomendación principal y dos alternativas, con botón “Pedirlo”.</div>
+    </div>
+
+    <div class="card" id="debug" style="display:none"></div>
+  </main>
+
+  <footer>© 2025 PuraCrema — Demo offline</footer>
+</div>
+
+<div class="toast" id="toast">Añadido al pedido</div>
+
+<script>
+var WHATSAPP_PHONE = ""; // opcional
+
+var CATALOGO = {
+  "Sorbete de limón":        { img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='240'><rect width='100%' height='100%' fill='%23f7f3d9'/><text x='50%' y='54%' font-size='28' text-anchor='middle' font-family='Arial' fill='%23666'>Limón</text></svg>", alergenos: "Sin lactosa, sin gluten", tags:["refrescante","acido","frutal","vegano"] },
+  "Mango vegano":            { img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='240'><rect width='100%' height='100%' fill='%23ffe5b4'/><text x='50%' y='54%' font-size='28' text-anchor='middle' font-family='Arial' fill='%23666'>Mango</text></svg>", alergenos: "Vegano, sin lactosa", tags:["dulce","frutal","refrescante","vegano"] },
+  "Fresa cremosa":           { img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='240'><rect width='100%' height='100%' fill='%23ffd4dc'/><text x='50%' y='54%' font-size='28' text-anchor='middle' font-family='Arial' fill='%23666'>Fresa</text></svg>", alergenos: "Contiene lactosa", tags:["dulce","frutal","cremoso"] },
+  "Chocolate intenso":       { img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='240'><rect width='100%' height='100%' fill='%236b4b35'/><text x='50%' y='54%' font-size='28' text-anchor='middle' font-family='Arial' fill='%23eee'>Choco</text></svg>", alergenos: "Contiene lactosa", tags:["chocolateado","intenso","dulce","cremoso"] },
+  "Pistacho clásico":        { img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='240'><rect width='100%' height='100%' fill='%23c7e2a0'/><text x='50%' y='54%' font-size='28' text-anchor='middle' font-family='Arial' fill='%23444'>Pistacho</text></svg>", alergenos: "Frutos secos, lactosa", tags:["cremoso","umami","intenso"] },
+  "Yogur con frutos rojos":  { img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='240'><rect width='100%' height='100%' fill='%23f0e7ff'/><text x='50%' y='54%' font-size='28' text-anchor='middle' font-family='Arial' fill='%23555'>Yogur</text></svg>", alergenos: "Lactosa", tags:["acido","frutal","cremoso"] },
+  "Dulce de leche":          { img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='240'><rect width='100%' height='100%' fill='%23e8c09b'/><text x='50%' y='54%' font-size='28' text-anchor='middle' font-family='Arial' fill='%23433'>DDL</text></svg>", alergenos: "Lactosa", tags:["dulce","cremoso","intenso"] },
+  "Menta choco chips":       { img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='240'><rect width='100%' height='100%' fill='%23b6f2d6'/><text x='50%' y='54%' font-size='28' text-anchor='middle' font-family='Arial' fill='%23433'>Menta</text></svg>", alergenos: "Lactosa", tags:["refrescante","chocolateado"] },
+  "Avellana":                { img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='240'><rect width='100%' height='100%' fill='%23d6c1a4'/><text x='50%' y='54%' font-size='28' text-anchor='middle' font-family='Arial' fill='%23433'>Avellana</text></svg>", alergenos: "Frutos secos, lactosa", tags:["umami","cremoso"] },
+  "Café espresso":           { img: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='240'><rect width='100%' height='100%' fill='%23382a23'/><text x='50%' y='54%' font-size='28' text-anchor='middle' font-family='Arial' fill='%23ddd'>Café</text></svg>", alergenos: "Puede contener lactosa", tags:["intenso","amargo","umami"] }
+};
+
+var MAPEO = {
+  "ninguna-dulce-cremoso-feliz": ["Dulce de leche","Fresa cremosa","Chocolate intenso"],
+  "ninguna-dulce-chocolateado-feliz": ["Chocolate intenso","Menta choco chips","Dulce de leche"],
+  "ninguna-acido-refrescante-tranquilo": ["Sorbete de limón","Yogur con frutos rojos","Mango vegano"],
+  "ninguna-amargo-intenso-cansado": ["Café espresso","Chocolate intenso","Pistacho clásico"],
+  "sin_lactosa-dulce-refrescante-feliz": ["Sorbete de limón","Mango vegano","Menta choco chips"],
+  "sin_gluten-dulce-frutal-feliz": ["Mango vegano","Sorbete de limón","Fresa cremosa"],
+  "vegano-dulce-refrescante-con_prisa": ["Mango vegano","Sorbete de limón","Yogur con frutos rojos"],
+  "frutos_secos-umami-cremoso-tranquilo": ["Yogur con frutos rojos","Dulce de leche","Chocolate intenso"]
+};
+
+function debug(msg){
+  var dbg = document.getElementById("debug");
+  dbg.style.display = "block";
+  dbg.innerHTML = '<div class="err">'+msg+'</div>';
+}
+
+function buscarConComodines(a,s1,s2,est){
+  var candidates = [
+    a+'-'+s1+'-'+s2+'-'+est,
+    a+'-'+s1+'-'+s2+'-*',
+    a+'-'+s1+'-*-'+est,
+    a+'-*-'+s2+'-'+est,
+    '*-'+s1+'-'+s2+'-'+est,
+    a+'-*-*-'+est,
+    '*-'+s1+'-*-'+est,
+    '*-*-'+s2+'-'+est
+  ];
+  for (var i=0;i<candidates.length;i++){
+    var k = candidates[i];
+    if (MAPEO[k]) return MAPEO[k];
+  }
+  return null;
+}
+
+function fallbackTrio(a,s1,s2){
+  function okAllergen(name){
+    var info = CATALOGO[name];
+    if (!info) return true;
+    var txt = (info.alergenos||"").toLowerCase();
+    if (a==="sin_lactosa" && txt.indexOf("lactosa")>-1) return false;
+    if (a==="sin_gluten" && txt.indexOf("gluten")>-1) return false;
+    if (a==="vegano" && txt.indexOf("vegano")===-1) return false;
+    if (a==="frutos_secos" && (name==="Pistacho clásico" || name==="Avellana")) return false;
+    return true;
+  }
+  var keys = Object.keys(CATALOGO).filter(okAllergen);
+  keys.sort(function(A,B){
+    var ta = (CATALOGO[A].tags||[]);
+    var tb = (CATALOGO[B].tags||[]);
+    var sa = (ta.indexOf(s1)>-1?1:0) + (ta.indexOf(s2)>-1?1:0);
+    var sb = (tb.indexOf(s1)>-1?1:0) + (tb.indexOf(s2)>-1?1:0);
+    return sb - sa;
+  });
+  if (keys.length===0) { return ["Sorbete de limón"]; }
+  if (keys.length===1) { return [keys[0]]; }
+  if (keys.length===2) { return [keys[0], keys[1]]; }
+  return keys.slice(0,3);
+}
+
+function elegirTrio(vals){
+  var a = vals.alergenos, s1 = vals.sabor1, s2 = vals.sabor2, est = vals.estado;
+  var trio = MAPEO[a+'-'+s1+'-'+s2+'-'+est] || buscarConComodines(a,s1,s2,est);
+  if (!trio) trio = fallbackTrio(a,s1,s2);
+  // barajar
+  trio = (trio||[]).slice();
+  for (var i=trio.length-1;i>0;i--){
+    var j = Math.floor(Math.random()*(i+1));
+    var tmp = trio[i]; trio[i]=trio[j]; trio[j]=tmp;
+  }
+  return trio;
+}
+
+function renderRecomendaciones(trio){
+  var principal = trio[0];
+  if (!principal){
+    debug("No se encontró ningún helado para esta combinación.");
+    return;
+  }
+  var alternativas = trio.slice(1);
+  var p = CATALOGO[principal] || {img:"",alergenos:"—"};
+  var out = document.getElementById("resultado");
+
+  var html = ''+
+  '<div class="choice">'+
+    '<div class="main-card">'+
+      '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">'+
+        '<div style="flex:1;min-width:220px">'+
+          '<h2 style="margin:0 0 6px;font-size:22px;display:flex;align-items:center;gap:8px">'+
+            principal+' <span class="pill">Recomendación</span>'+
+          '</h2>'+
+          '<div class="muted">Alérgenos: '+(p.alergenos||"—")+'</div>'+
+        '</div>'+
+        '<div style="width:100%;height:1px;background:rgba(255,255,255,.08);margin:8px 0"></div>'+
+        '<img src="'+(p.img||'')+'" alt="'+principal+'">'+
+      '</div>'+
+      '<div class="actions">'+
+        '<button onclick="pedir(\''+principal.replace(/'/g,"\\'")+'\')">Pedirlo</button>'+
+        '<button onclick="copiarResumen(\''+principal.replace(/'/g,"\\'")+'\')">Copiar pedido</button>'+
+        (WHATSAPP_PHONE!=="" ? '<a style="text-decoration:none" id="wplink" target="_blank"><button type="button">Enviar por WhatsApp</button></a>' : '')+
+      '</div>'+
+    '</div>'+
+    '<div class="alts">'+
+      '<div class="muted">Otras sugerencias</div>'+
+      alternativas.map(function(n){ var i = CATALOGO[n]||{img:"",alergenos:"—"}; return ''+
+        '<div class="alt">'+
+          '<img src="'+(i.img||'')+'" alt="'+n+'"/>'+
+          '<div style="flex:1">'+
+            '<div style="font-weight:700">'+n+'</div>'+
+            '<div class="muted">Alérgenos: '+(i.alergenos||"—")+'</div>'+
+          '</div>'+
+          '<button type="button" onclick="reemplazarPrincipal(\''+n.replace(/'/g,"\\'")+'\')">Elegir</button>'+
+        '</div>'; }).join('')+
+    '</div>'+
+  '</div>';
+  out.innerHTML = html;
+
+  if (WHATSAPP_PHONE!==""){
+    var url = makeWhatsAppUrl(principal);
+    var wplink = document.getElementById("wplink");
+    if (wplink) wplink.href = url;
+  }
+}
+
+function getFormValues(){
+  var f = document.getElementById("formulario");
+  return {
+    alergenos: f.alergenos.value,
+    sabor1: f.sabor1.value,
+    sabor2: f.sabor2.value,
+    estado: f.estado.value
+  };
+}
+
+function recomandar(form){
+  try{
+    var vals = getFormValues();
+    var trio = elegirTrio(vals) || [];
+    if (trio.length===0){ debug("No se encontró ningún helado."); return; }
+    var randomIdx = Math.floor(Math.random()*trio.length);
+    var tmp = trio[0]; trio[0] = trio[randomIdx]; trio[randomIdx] = tmp;
+    renderRecomendaciones(trio);
+  }catch(e){
+    debug("Error: "+(e && e.message ? e.message : e));
+  }
+}
+function recomendar(form){ return recomandar(form); } // alias
+
+function reemplazarPrincipal(nuevo){
+  var vals = getFormValues();
+  var trio = elegirTrio(vals) || [];
+  var filtered = [nuevo];
+  for (var i=0;i<trio.length;i++){
+    if (trio[i]!==nuevo) filtered.push(trio[i]);
+    if (filtered.length===3) break;
+  }
+  renderRecomendaciones(filtered);
+}
+
+function toast(msg){
+  var t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.display = "block";
+  setTimeout(function(){ t.style.display="none"; }, 1500);
+}
+
+function pedidoText(nombre){
+  var f = getFormValues();
+  return "Pedido PuraCrema:\n- Helado: "+nombre+"\n- Alergenos: "+f.alergenos+"\n- Preferencias: "+f.sabor1+", "+f.sabor2+"\n- Estado: "+f.estado;
+}
+
+function copiarResumen(nombre){
+  var txt = pedidoText(nombre);
+  try{
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){ toast("Pedido copiado"); });
+    } else {
+      var ta = document.createElement("textarea");
+      ta.value = txt; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand("copy"); toast("Pedido copiado"); }catch(_){}
+      document.body.removeChild(ta);
+    }
+  }catch(e){}
+}
+
+function makeWhatsAppUrl(nombre){
+  var txt = encodeURIComponent(pedidoText(nombre));
+  return "https://wa.me/"+WHATSAPP_PHONE+"?text="+txt;
+}
+
+function pedir(nombre){
+  var ticket = { id: "PC-"+Date.now(), nombre: nombre, t: new Date().toISOString(), prefs: getFormValues() };
+  try{
+    var prev = JSON.parse(localStorage.getItem("pc_pedidos")||"[]");
+    prev.push(ticket);
+    localStorage.setItem("pc_pedidos", JSON.stringify(prev));
+  }catch(e){}
+  toast("Añadido al pedido (#"+ticket.id+")");
+  if (WHATSAPP_PHONE!==""){
+    var url = makeWhatsAppUrl(nombre);
+    window.open(url, "_blank");
+  }
+}
+
+document.getElementById("formulario").addEventListener("submit", function(e){
+  e.preventDefault();
+  recomandar(e.target);
+});
+document.getElementById("otra").addEventListener("click", function(){
+  var form = document.getElementById("formulario");
+  recomandar(form);
+});
+</script>
+</body>
+</html>
